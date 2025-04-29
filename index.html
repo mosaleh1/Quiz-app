@@ -8,28 +8,43 @@
 </head>
 <body>
 
-    <div class="quiz-container">
-        <h1>Android Internship Quiz</h1>
-        <div id="quiz">
-            <div id="question-header">
-                <h2 id="question">Question text</h2>
-                <p>Question <span id="question-number">1</span> of <span id="total-questions">50</span></p>
-            </div>
-            <div id="options-container">
-                </div>
-            <button id="submit-btn">Submit Answer</button>
-            <div id="feedback" class="hidden">
-                <p id="feedback-text"></p>
-                <p id="explanation" dir="rtl"></p> 
-            </div>
-        </div>
-        <div id="results-container" class="hidden">
-            <h2>Quiz Completed!</h2>
-            <p>Your final score is: <span id="score">0</span> out of <span id="total-score">50</span></p>
-            <button id="restart-btn">Restart Quiz</button>
-        </div>
-    </div>
+    <header class="app-header">
+        <h1>Android Quiz Engine</h1>
+    </header>
 
-    <script src="script.js"></script> 
+    <main class="main-content">
+        <div id="homepage-container">
+            <h2>Select a Quiz</h2>
+            <div id="quiz-grid">
+                </div>
+        </div>
+
+        <div id="quiz-container" class="quiz-section hidden">
+            <button id="back-to-home-btn-quiz" class="back-btn">&lt; Back to Home</button>
+            <h1>Android Internship Quiz</h1>
+            <div id="quiz">
+                <div id="question-header">
+                    <h2 id="question">Question text</h2>
+                    <p>Question <span id="question-number">1</span> of <span id="total-questions">10</span></p>
+                </div>
+                <div id="options-container">
+                    </div>
+                <button id="submit-btn">Submit Answer</button>
+                <div id="feedback" class="hidden">
+                    <p id="feedback-text"></p>
+                    <p id="explanation" dir="rtl"></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-container" class="quiz-section hidden">
+            <button id="back-to-home-btn-results" class="back-btn">&lt; Back to Home</button>
+            <h2>Quiz Completed!</h2>
+            <p>Your final score is: <span id="score">0</span> out of <span id="total-score">10</span></p>
+            <button id="try-again-btn">Try Quiz Again</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

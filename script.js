@@ -1,7 +1,6 @@
 // --- Quiz Data ---
-// (Paste the 50 questions array here)
-// Example structure:
-const quizData = [
+// Moved back into the main script file
+const allQuestions = [
     {
         "question": "1. What is the primary advantage of using `val` over `var` in Kotlin?",
         "options": ["Better performance", "Enforces immutability, leading to safer code", "Required for non-nullable types", "Allows type inference"],
@@ -72,6 +71,7 @@ const quizData = [
         "explanation": "في كوتلن، `==` بتقارن القيم (structural equality)، يعني بتنادي ميثود `equals()` عشان تشوف هل الـ objects متساويين في المحتوى. أما `===` بتقارن هل المتغيرين بيشاوروا على نفس المكان بالظبط في الميموري (referential equality).",
         "isFavorite": false
     },
+    // Quiz 2 Starts (Q11-20)
     {
         "question": "11. Which lifecycle method is called when an Activity first comes into the foreground and becomes interactive?",
         "options": ["`onCreate()`", "`onStart()`", "`onResume()`", "`onVisible()`"],
@@ -142,6 +142,7 @@ const quizData = [
         "explanation": "الميثود `setContentView()`، اللي عادةً بتناديها جوه `onCreate()`, هي اللي بتقول للـ Activity إيه هو ملف الـ XML اللي بيمثل التصميم (layout) بتاع الشاشة دي. هي بتاخد الـ ID بتاع ملف الـ layout (زي `R.layout.activity_main`)، تعمله inflation (تحوله لـ View objects في الميموري)، وتخليه هو الواجهة اللي المستخدم بيشوفها للـ Activity دي.",
         "isFavorite": false
     },
+    // Quiz 3 Starts (Q21-30)
     {
         "question": "21. Why is it crucial to perform network operations or long database queries off the main thread in Android?",
         "options": ["To improve battery life.", "To prevent blocking the main thread, which causes Application Not Responding (ANR) errors.", "To make the code easier to read.", "The Android system requires all I/O operations to be on background threads by default."],
@@ -212,6 +213,7 @@ const quizData = [
         "explanation": "ANR هي اختصار لـ Application Not Responding. دي الرسالة اللي الأندرويد بيظهرها للمستخدم لما التطبيق بتاعك يتجمد وميستجبش للمدخلات (زي اللمس) لفترة طويلة (عادة 5 ثواني للـ UI thread). السبب الأكثر شيوعاً هو إنك بتعمل عملية بتاخد وقت طويل على الـ Main Thread بدل ما تعملها في background thread.",
         "isFavorite": false
     },
+    // Quiz 4 Starts (Q31-40)
     {
         "question": "31. You need to display a large list of items efficiently, loading more items as the user scrolls down. Which Android component and pattern would you primarily use?",
         "options": ["`ListView` with a custom adapter.", "`ScrollView` containing many `TextViews`.", "`RecyclerView` with pagination/infinite scrolling logic in the Adapter/ViewModel.", "`ViewPager` with a `FragmentStateAdapter`."],
@@ -282,6 +284,7 @@ const quizData = [
         "explanation": "ProGuard (والبديل الأحدث R8) هي أدوات بتشتغل وقت الـ build بتاع التطبيق. ليها 3 وظايف أساسية: Shrinking (بتحذف الكود والـ resources اللي مش مستخدمة عشان تقلل حجم الـ APK)، Obfuscation (بتغير أسماء الكلاسات والميثودات والمتغيرات لأسماء قصيرة مالهاش معنى عشان تصعب على أي حد يعمل reverse engineering للكود بتاعك)، و Optimization (بتعمل تحسينات على الكود عشان يشتغل أسرع شوية).",
         "isFavorite": false
     },
+    // Quiz 5 Starts (Q41-50)
     {
         "question": "41. What is Java Reflection?",
         "options": ["A way to visualize UI component hierarchy.", "The ability of code to inspect and manipulate itself (classes, methods, fields) at runtime.", "A tool for memory leak detection.", "A graphics rendering technique."],
@@ -356,7 +359,11 @@ const quizData = [
 
 
 // --- DOM Elements ---
-const quizContainer = document.getElementById('quiz');
+const homepageContainer = document.getElementById('homepage-container');
+const quizGrid = document.getElementById('quiz-grid');
+const quizSectionContainer = document.getElementById('quiz-container'); // Renamed variable for clarity
+const resultsContainer = document.getElementById('results-container');
+
 const questionEl = document.getElementById('question');
 const questionNumberEl = document.getElementById('question-number');
 const totalQuestionsEl = document.getElementById('total-questions');
@@ -365,39 +372,129 @@ const submitBtn = document.getElementById('submit-btn');
 const feedbackEl = document.getElementById('feedback');
 const feedbackTextEl = document.getElementById('feedback-text');
 const explanationEl = document.getElementById('explanation');
-const resultsContainer = document.getElementById('results-container');
 const scoreEl = document.getElementById('score');
 const totalScoreEl = document.getElementById('total-score');
-const restartBtn = document.getElementById('restart-btn');
+const tryAgainBtn = document.getElementById('try-again-btn'); // Renamed variable
+const backToHomeBtnQuiz = document.getElementById('back-to-home-btn-quiz');
+const backToHomeBtnResults = document.getElementById('back-to-home-btn-results');
 
 // --- State Variables ---
+const QUESTIONS_PER_QUIZ = 10;
+let currentQuizQuestions = []; // Holds questions for the currently selected quiz
 let currentQuestionIndex = 0;
+let currentQuizIndex = -1; // To track which quiz is active for "Try Again"
 let score = 0;
-let answerSelected = false;
+let answerProcessed = false; // Flag to track if the current answer has been checked
 
 // --- Functions ---
 
+/**
+ * Initializes the application view, showing the homepage and hiding others.
+ */
+function showHomepage() {
+    currentQuizIndex = -1; // Reset active quiz index
+    homepageContainer.classList.remove('hidden');
+    quizSectionContainer.classList.add('hidden');
+    resultsContainer.classList.add('hidden');
+    createQuizCards(); // Generate cards when showing homepage
+     // Scroll to top when returning home
+    window.scrollTo(0, 0);
+}
+
+/**
+ * Generates the quiz selection cards on the homepage.
+ */
+function createQuizCards() {
+    quizGrid.innerHTML = ''; // Clear existing cards
+    const totalQuestionsCount = allQuestions.length;
+    const numQuizzes = Math.ceil(totalQuestionsCount / QUESTIONS_PER_QUIZ);
+
+    for (let i = 0; i < numQuizzes; i++) {
+        const startQuestionNum = i * QUESTIONS_PER_QUIZ + 1;
+        // Calculate end number, ensuring it doesn't exceed total questions
+        const endQuestionNum = Math.min((i + 1) * QUESTIONS_PER_QUIZ, totalQuestionsCount);
+
+        const card = document.createElement('div');
+        card.classList.add('quiz-card');
+        card.dataset.quizIndex = i; // Store quiz index (0-based)
+
+        const title = document.createElement('h3');
+        title.innerText = `Quiz ${i + 1}`;
+
+        const description = document.createElement('p');
+        description.innerText = `Questions ${startQuestionNum}-${endQuestionNum}`;
+
+        card.appendChild(title);
+        card.appendChild(description);
+
+        card.addEventListener('click', () => {
+            startQuiz(i);
+        });
+
+        quizGrid.appendChild(card);
+    }
+}
+
+/**
+ * Starts a specific quiz based on its index.
+ * @param {number} quizIndex - The 0-based index of the quiz to start.
+ */
+function startQuiz(quizIndex) {
+    currentQuizIndex = quizIndex; // Store which quiz we are starting
+    const startIndex = quizIndex * QUESTIONS_PER_QUIZ;
+    const endIndex = Math.min(startIndex + QUESTIONS_PER_QUIZ, allQuestions.length);
+    currentQuizQuestions = allQuestions.slice(startIndex, endIndex);
+
+    // Reset state for the new quiz
+    currentQuestionIndex = 0;
+    score = 0;
+    answerProcessed = false;
+
+    // Update UI
+    homepageContainer.classList.add('hidden');
+    resultsContainer.classList.add('hidden');
+    quizSectionContainer.classList.remove('hidden');
+
+     // Scroll to top when starting quiz
+    window.scrollTo(0, 0);
+
+    loadQuestion();
+}
+
+/**
+ * Loads the current question data into the UI.
+ */
 function loadQuestion() {
-    answerSelected = false; // Reset answer selection flag
+    answerProcessed = false; // Reset flag for the new question
     feedbackEl.classList.add('hidden'); // Hide feedback from previous question
-    const currentQuestion = quizData[currentQuestionIndex];
+    submitBtn.innerText = 'Submit Answer';
+    submitBtn.disabled = false; // Ensure submit is enabled
+
+    if (!currentQuizQuestions || currentQuizQuestions.length === 0) {
+        console.error("No quiz questions loaded!");
+        showHomepage(); // Go back home if something is wrong
+        return;
+    }
+
+    const currentQuestion = currentQuizQuestions[currentQuestionIndex];
 
     questionEl.innerText = currentQuestion.question;
+    // Display question number within the current quiz (1 to N)
     questionNumberEl.innerText = currentQuestionIndex + 1;
-    totalQuestionsEl.innerText = quizData.length;
+    totalQuestionsEl.innerText = currentQuizQuestions.length; // Total in this quiz chunk
     optionsContainer.innerHTML = ''; // Clear previous options
 
     // Create options
     currentQuestion.options.forEach((option, index) => {
         const optionId = `option${index}`;
         const optionDiv = document.createElement('div');
-        
+
         const radioBtn = document.createElement('input');
         radioBtn.type = 'radio';
         radioBtn.id = optionId;
         radioBtn.name = 'option';
         radioBtn.value = option;
-        radioBtn.disabled = false; // Ensure options are enabled
+        radioBtn.disabled = false; // Ensure options are enabled initially
 
         const label = document.createElement('label');
         label.htmlFor = optionId;
@@ -406,23 +503,37 @@ function loadQuestion() {
         optionDiv.appendChild(radioBtn);
         optionDiv.appendChild(label);
         optionsContainer.appendChild(optionDiv);
+
+         // Add event listener to enable submit button on selection
+        radioBtn.addEventListener('change', () => {
+             if (!answerProcessed) { // Only enable if answer not yet processed
+                 submitBtn.disabled = false;
+             }
+        });
     });
 
-    submitBtn.innerText = 'Submit Answer';
-    submitBtn.disabled = false; // Enable submit button
+    // Initially disable submit button until an option is selected
+    submitBtn.disabled = true;
+
 }
 
+/**
+ * Checks the selected answer against the correct answer and provides feedback.
+ */
 function checkAnswer() {
     const selectedOptionInput = document.querySelector('input[name="option"]:checked');
-    
+
     if (!selectedOptionInput) {
+        // This check might become redundant due to disabling submit initially,
+        // but kept as a safeguard.
         alert('Please select an answer!');
+        submitBtn.disabled = true; // Re-disable if somehow clicked without selection
         return;
     }
-    
-    answerSelected = true; // Mark that an answer has been processed
+
+    answerProcessed = true; // Mark that the answer for this question is processed
     const userAnswer = selectedOptionInput.value;
-    const currentQuestion = quizData[currentQuestionIndex];
+    const currentQuestion = currentQuizQuestions[currentQuestionIndex];
     const correctAnswer = currentQuestion.answer;
 
     // Disable options after selection
@@ -432,7 +543,9 @@ function checkAnswer() {
 
     // Show feedback
     feedbackEl.classList.remove('hidden', 'correct', 'incorrect'); // Reset classes
-    explanationEl.innerText = currentQuestion.explanation; // Set explanation text
+    explanationEl.innerText = currentQuestion.explanation || "No explanation provided."; // Set explanation text safely
+    explanationEl.dir = explanationEl.innerText.match(/[\u0600-\u06FF]/) ? 'rtl' : 'ltr'; // Auto-detect direction
+
 
     if (userAnswer === correctAnswer) {
         score++;
@@ -444,43 +557,54 @@ function checkAnswer() {
     }
 
     // Change button to "Next Question" or "Show Results"
-    if (currentQuestionIndex < quizData.length - 1) {
+    if (currentQuestionIndex < currentQuizQuestions.length - 1) {
         submitBtn.innerText = 'Next Question';
     } else {
         submitBtn.innerText = 'Show Results';
     }
+     // Re-enable the button (now acting as Next/Results)
+    submitBtn.disabled = false;
 }
 
+/**
+ * Displays the final results of the current quiz.
+ */
 function showResults() {
-    quizContainer.classList.add('hidden');
+    quizSectionContainer.classList.add('hidden');
     resultsContainer.classList.remove('hidden');
     scoreEl.innerText = score;
-    totalScoreEl.innerText = quizData.length;
+    totalScoreEl.innerText = currentQuizQuestions.length; // Total is the size of the current quiz chunk
+     // Scroll to top when showing results
+    window.scrollTo(0, 0);
 }
 
 // --- Event Listeners ---
 
 submitBtn.addEventListener('click', () => {
-    if (!answerSelected) { // If answer hasn't been checked yet
+    if (!answerProcessed) { // If answer hasn't been processed yet for the current question
         checkAnswer();
-    } else { // If answer has been checked, move to next question or show results
+    } else { // If answer was processed, button means "Next" or "Show Results"
         currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
-            loadQuestion();
+        if (currentQuestionIndex < currentQuizQuestions.length) {
+            loadQuestion(); // Load next question in the current quiz
         } else {
-            showResults();
+            showResults(); // Show results for the current quiz
         }
     }
 });
 
-restartBtn.addEventListener('click', () => {
-    currentQuestionIndex = 0;
-    score = 0;
-    answerSelected = false;
-    resultsContainer.classList.add('hidden');
-    quizContainer.classList.remove('hidden');
-    loadQuestion();
+// "Try Again" button restarts the *current* quiz
+tryAgainBtn.addEventListener('click', () => {
+    if (currentQuizIndex !== -1) { // Ensure a quiz was actually active
+         startQuiz(currentQuizIndex); // Restart the same quiz
+    } else {
+        showHomepage(); // Fallback to homepage if state is somehow lost
+    }
 });
 
+// Back buttons navigate to the homepage
+backToHomeBtnQuiz.addEventListener('click', showHomepage);
+backToHomeBtnResults.addEventListener('click', showHomepage);
+
 // --- Initial Load ---
-loadQuestion(); // Load the first question when the page opens
+showHomepage(); // Start by showing the homepage
