@@ -355,6 +355,556 @@ const allQuestions = [
         "explanation": "لما Activity تفقد الـ focus بس تفضل لسه متشافة جزئياً (زي لو ظهر فوقيها dialog أو activity تانية شفافة)، السيستم بينادي ميثود `onPause()`. في الحالة دي الـ Activity مبقتش هي اللي في الـ foreground ومبتقدرش تتفاعل معاها، بس لسه ظاهرة. لو الـ Activity اختفت تماماً عن الشاشة (مثلاً فتحت Activity جديدة فوقيها غطتها بالكامل)، ساعتها السيستم هينادي `onStop()` كمان بعد `onPause()`.",
         "isFavorite": false
     }
+    ,{
+        "question": "51. In the context of Android's Binder IPC, what is the primary role of `onTransact()` and how does it differ from using AIDL generated stubs?",
+        "options": [
+            "It serializes data; AIDL handles deserialization.",
+            "It runs on the client process; AIDL runs on the service process.",
+            "It's the low-level entry point for receiving transaction codes and raw Binder data, requiring manual dispatching and marshalling/unmarshalling, whereas AIDL abstracts this.",
+            "It handles synchronous calls only; AIDL handles asynchronous calls."
+        ],
+        "answer": "It's the low-level entry point for receiving transaction codes and raw Binder data, requiring manual dispatching and marshalling/unmarshalling, whereas AIDL abstracts this.",
+        "explanation": "`onTransact` ده الميثود الأساسية في الـ `Binder` اللي بتستقبل كل الـ transactions اللي جاية من process تانية. بتستقبل كود العملية (عشان تعرف أنهي ميثود تتنادى) وبتاخد الـ data كـ `Parcel` خام. أنت المسئول عن قراية الـ data دي وتحديد أنهي ميثود تناديها وترجع الـ result. الـ AIDL بيعمل generate لكل الكود المعقد ده (الـ stub والـ proxy) وبيخليك تتعامل معاه كأنك بتنادي ميثود عادية، فبيسهل العملية جداً."
+    },
+    {
+        "question": "52. When optimizing app startup, what is the significance of the Zygote process preloading classes and resources?",
+        "options": [
+            "It reduces APK size by sharing common code.",
+            "It allows apps to bypass permission checks during startup.",
+            "It drastically speeds up cold starts by creating new app processes as forks of an already initialized VM with system classes loaded, enabling Copy-on-Write memory sharing.",
+            "It isolates each app's memory heap completely from the system."
+        ],
+        "answer": "It drastically speeds up cold starts by creating new app processes as forks of an already initialized VM with system classes loaded, enabling Copy-on-Write memory sharing.",
+        "explanation": "الـ Zygote هو process أندرويد بيبدأ أول ما الجهاز يفتح وبيحمل كل الكلاسات والـ resources الأساسية بتاعة السيستم جوه الـ VM بتاعته. لما تيجي تفتح تطبيق جديد (cold start)، الأندرويد سيستم مش بيبدأ process جديدة من الصفر، لأ، هو بيعمل fork (نسخة) من الـ Zygote process. ده أسرع بكتير لأن الكلاسات الأساسية جاهزة، والـ memory pages اللي فيها الكود والـ resources دي بيحصلها sharing بين كل الـ apps عن طريق الـ Copy-on-Write (CoW)، فبيوفر memory ووقت."
+    },
+    {
+        "question": "53. In Jetpack Compose, what does it mean for a Composable function's parameter type to be 'Stable' and why is it crucial for performance?",
+        "options": [
+            "The type is declared with `val`.",
+            "The type implements the `Parcelable` interface.",
+            "The type guarantees that if an instance's public properties haven't changed, the instance is considered identical, allowing Compose to reliably skip recomposition if the input instance hasn't changed.",
+            "The type can only be used within `@StableComposable` functions."
+        ],
+        "answer": "The type guarantees that if an instance's public properties haven't changed, the instance is considered identical, allowing Compose to reliably skip recomposition if the input instance hasn't changed.",
+        "explanation": "في Compose، الـ Stability هي ضمان من الـ type إن لو public properties بتاعة object منه متغيرةش، يبقى الـ object ده لسه زي ما هو (يعني `equals` هترجع true). الـ Compose compiler بيستخدم المعلومة دي عشان يعمل optimization. لو فانكشن بتاخد parameter من نوع stable، والـ instance اللي داخلة المرة دي هي هي نفس instance اللي دخلت المرة اللي فاتت (أو `equals` بترجع true)، الكومبايلر يقدر يعمل skip للـ recomposition بتاع الفانكشن دي وأي فانكشن جواها، وده بيحسن الأداء جداً. الأنواع الـ Primitive والـ String والـ functional types مستقرة باي ديفولت. الكلاسات اللي كل الـ parameters بتاعتها primitive أو stable بتكون stable. ممكن تستخدم `@Stable` أو `@Immutable` annotation لو الكومبايلر معرفش يحدد الـ stability لوحده."
+    },
+    {
+        "question": "54. How does `SharedFlow` handle backpressure compared to `Channel` in Kotlin Coroutines?",
+        "options": [
+            "`SharedFlow` suspends the emitter, while `Channel` drops old values.",
+            "`SharedFlow` has built-in buffering strategies (e.g., `DROP_OLDEST`, `SUSPEND`) configured via `replay`, `buffer`, or `onBufferOverflow`, while `Channel` behavior depends on its specific type (e.g., `CONFLATED`, `RENDEZVOUS`).",
+            "`Channel` always buffers infinitely, while `SharedFlow` has a fixed buffer size.",
+            "Neither `SharedFlow` nor `Channel` supports backpressure."
+        ],
+        "answer": "`SharedFlow` has built-in buffering strategies (e.g., `DROP_OLDEST`, `SUSPEND`) configured via `replay`, `buffer`, or `onBufferOverflow`, while `Channel` behavior depends on its specific type (e.g., `CONFLATED`, `RENDEZVOUS`).",
+        "explanation": "الـ `SharedFlow` مصمم للـ broadcasting (واحد بيبعت ولكذا واحد بيستقبل). عشان يتعامل مع مستقبل بطيء (backpressure)، هو عنده استراتيجيات buffering تقدر تتحكم فيها زي إنه يحتفظ بآخر كام قيمة (`replay`), أو حجم الـ buffer (`buffer`), وإيه اللي يحصل لو الـ buffer اتملى (`onBufferOverflow` زي `DROP_OLDEST`, `DROP_LATEST`, `SUSPEND`). أما الـ `Channel`، سلوك الـ backpressure بيعتمد بشكل أساسي على نوع الـ Channel اللي بتعمله (مثلاً `RENDEZVOUS` بيخلي الـ sender يستنى الـ receiver، `CONFLATED` بيحتفظ بآخر قيمة بس، buffered channel ليه حجم معين ولو اتملى الـ sender بيعمل suspend)."
+    },
+    {
+        "question": "55. What is the primary purpose of using Baseline Profiles in Android?",
+        "options": [
+            "To define UI layouts for different screen sizes.",
+            "To provide ahead-of-time (AOT) compilation hints to ART for critical user journeys, improving startup time and reducing jank during first use after install/update.",
+            "To enforce coding style guidelines across the project.",
+            "To automatically generate unit tests for critical code paths."
+        ],
+        "answer": "To provide ahead-of-time (AOT) compilation hints to ART for critical user journeys, improving startup time and reducing jank during first use after install/update.",
+        "explanation": "الـ Baseline Profiles دي عبارة عن ملف فيه ليستة بالكلاسات والميثودات اللي غالباً بتستخدم في رحلات المستخدم المهمة (Critical User Journeys - CUJs) زي فتح التطبيق أو الـ scrolling في ليستة مهمة. الملف ده بيتضمن في الـ APK وبيستخدمه الـ Android Runtime (ART) عشان يعمل Ahead-Of-Time (AOT) compilation للكود ده وقت تثبيت التطبيق أو في الخلفية. ده بيخلي الكود ده يشتغل أسرع من أول مرة، فبيحسن الـ startup time وبيقلل الـ jank (التقطيع) اللي ممكن يحصل بسبب الـ Just-In-Time (JIT) compilation في أول استخدام بعد التثبيت أو التحديث."
+    },
+    {
+        "question": "56. In a multi-module Android project using Dagger/Hilt, how can you provide a specific implementation of an interface only within the scope of a particular feature module, while a default implementation exists in a core module?",
+        "options": [
+            "Using `@Named` qualifiers for both implementations.",
+            "Using Hilt's `@TestInstallIn` to replace the binding.",
+            "Defining the specific implementation in the feature module's Hilt module and ensuring the feature module's component is a child of the core component. Hilt's scope hierarchy naturally prefers the binding in the closer scope.",
+            "It's not possible; module dependencies require a single canonical binding for an unscoped type."
+        ],
+        "answer": "Defining the specific implementation in the feature module's Hilt module and ensuring the feature module's component is a child of the core component. Hilt's scope hierarchy naturally prefers the binding in the closer scope.",
+        "explanation": "في Hilt (ومبادئ Dagger)، الـ scopes بتعمل hierarchy. لو عندك interface مربوط بـ implementation معينة في موديول أساسي (مثلاً في الـ `SingletonComponent`)، وبعدين جيت في موديول بتاع feature معينة (ليه scope خاص بيه زي `@FeatureScope` مربوط بـ component تابعة للـ `SingletonComponent`) وعملت binding لنفس الـ interface ده بس بـ implementation تانية جوه الموديول ده، Hilt هيفضل الـ binding اللي في الـ scope الأقرب. يعني الكود اللي جوه الـ feature scope هياخد الـ implementation المخصصة ليه، بينما الكود اللي بره الـ feature scope هياخد الـ implementation الأساسية."
+    },
+    {
+        "question": "57. What potential issue can arise from using `remember { mutableStateOf(...) }` directly within a frequently recomposing Composable for complex objects, and what is a better alternative?",
+        "options": [
+            "It causes memory leaks; use `produceState`.",
+            "It bypasses Composition Locals; use `staticCompositionLocalOf`.",
+            "It can lead to unnecessary object recreation on each recomposition if the initial calculation is expensive, potentially causing performance issues; use `rememberSaveable` or hoist the state creation.",
+            "It breaks structured concurrency; use `LaunchedEffect`."
+        ],
+        "answer": "It can lead to unnecessary object recreation on each recomposition if the initial calculation is expensive, potentially causing performance issues; use `rememberSaveable` or hoist the state creation.",
+        "explanation": "لو الجزء بتاع `mutableStateOf(...)` نفسه (اللي بيعمل create للـ initial state) مكلف (مثلاً بيعمل object معقد أو بيعمل عملية حسابية)، استخدام `remember { ... }` ممكن يؤدي لإن الـ state ده يتعاد حسابه أو الـ object يتعاد خلقه في كل مرة الـ composable بيحصلها recomposition حتى لو الـ state نفسه مش المفروض يتغير. ده ممكن يأثر على الأداء. الحلول الأفضل: 1) لو الـ state محتاج يبقى survive للـ configuration change أو process death، استخدم `rememberSaveable`. 2) لو لأ، ممكن تعمل hoisting للـ state creation، يعني تخلق الـ state في مستوى أعلى (parent composable) وتمرره كـ parameter، وده بيضمن إنه بيتعمل مرة واحدة بس في الـ scope الأعلى ده."
+    },
+    {
+        "question": "58. When analyzing rendering performance using Android Studio's profiler or Systrace, what does a large portion of time spent in 'Sync & Upload' typically indicate?",
+        "options": [
+            "Heavy CPU computation on the main thread.",
+            "Excessive network requests blocking the UI thread.",
+            "The bitmap data for images or other assets is being uploaded to the GPU too frequently or inefficiently, often due to new bitmaps being created unnecessarily.",
+            "Slow database query execution."
+        ],
+        "answer": "The bitmap data for images or other assets is being uploaded to the GPU too frequently or inefficiently, often due to new bitmaps being created unnecessarily.",
+        "explanation": "مرحلة الـ 'Sync & Upload' في الـ rendering pipeline هي لما الـ CPU بيستنى الـ GPU يخلص شغل وبيبعتله الـ data الجديدة ( زي textures بتاعة الصور، بيانات الـ mesh، إلخ) اللي محتاجها عشان يرسم الـ frame الجاي. لو المرحلة دي بتاخد وقت طويل، ده غالباً معناه إن فيه كمية كبيرة من الـ bitmap data بتترفع للـ GPU memory. السبب الشائع بيكون إن التطبيق بيخلق `Bitmap` objects جديدة كتير (مثلاً في كل frame من animation أو جوا `onDraw` بتاع custom view) بدل ما يعيد استخدام الـ bitmaps الموجودة أو يرسم بكفاءة أكتر باستخدام الـ `Canvas` مباشرة لو ممكن."
+    },
+    {
+        "question": "59. How does R8's 'optimization' step differ from its 'shrinking' and 'obfuscation' steps in the Android build process?",
+        "options": [
+            "Optimization removes unused code, shrinking renames classes/methods.",
+            "Optimization rewrites code (e.g., inlining methods, removing dead code branches, class merging) to improve runtime performance or reduce size further, beyond just removing unused elements or renaming.",
+            "Optimization only applies to Kotlin code, while shrinking applies to Java.",
+            "Optimization focuses solely on reducing Dex file count for multidexing."
+        ],
+        "answer": "Optimization rewrites code (e.g., inlining methods, removing dead code branches, class merging) to improve runtime performance or reduce size further, beyond just removing unused elements or renaming.",
+        "explanation": "الـ Shrinking بيشيل الكود والـ resources اللي مش مستخدمة خالص. الـ Obfuscation بيغير الأسماء عشان يصعب الـ reverse engineering ويقلل حجم الـ strings في الـ dex file. أما الـ Optimization، دي مرحلة أعمق بيعمل فيها R8 تحليل للكود وبيغير فيه عشان يحسنه. ده ممكن يشمل: عمل inline للميثودات القصيرة، إزالة أجزاء من الكود عمرها ما هتتنفذ (dead code elimination)، دمج كلاسات معينة، تعديل الـ control flow، وغيرها من التكنيكات اللي هدفها يا إما تقليل حجم الكود أكتر أو تحسين أداءه وقت التشغيل، بناءً على قواعد وتحليلات معقدة للكود bytecode."
+    },
+    {
+        "question": "60. What is the primary difference in behavior between `StateFlow` and `LiveData` when the Android View consuming them goes to the background (STOPPED state)?",
+        "options": [
+            "`LiveData` stops emission completely, `StateFlow` continues emitting but drops intermediate values.",
+            "`LiveData` continues emitting values but doesn't deliver them until the View is active again, while `StateFlow` collection stops if collected using `viewLifecycleOwner.repeatOnLifecycle(STARTED)` (or `CREATED`) and resumes on restart.",
+            "`StateFlow` automatically saves its last value in `SavedStateHandle`, `LiveData` does not.",
+            "Both stop emitting and lose the last value."
+        ],
+        "answer": "`LiveData` continues emitting values but doesn't deliver them until the View is active again, while `StateFlow` collection stops if collected using `viewLifecycleOwner.repeatOnLifecycle(STARTED)` (or `CREATED`) and resumes on restart.",
+        "explanation": "الـ `LiveData` مصمم إنه يبقى lifecycle-aware. لو الـ observer بتاعه (عادة الـ View) دخل في حالة `STOPPED`، الـ `LiveData` نفسه ممكن يفضل يستقبل updates (لو فيه مصدر بيانات شغال في الخلفية)، لكنه مش هيوصل الـ updates دي للـ observer غير لما الـ observer يرجع لحالة `STARTED` أو `RESUMED`. أما `StateFlow` (ومعظم الـ Flows)، لو أنت بتعمل collect ليه بالطريقة الموصى بها باستخدام `viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED)`، الـ collection نفسها بتقف تماماً لما الـ lifecycle ينزل تحت `STARTED` (يعني يدخل `STOPPED`). ده بيوفر موارد لأنه بيوقف الـ downstream processing. لما الـ lifecycle يرجع لـ `STARTED` تاني، الـ collection بتبدأ من جديد وبتاخد آخر قيمة موجودة في الـ `StateFlow`."
+    },
+    {
+        "question": "61. In the context of Android VSYNC and Choreographer, what problem does 'triple buffering' help mitigate?",
+        "options": [
+            "Screen tearing by synchronizing CPU, GPU, and display refresh.",
+            "Input lag by processing touch events faster.",
+            "Application Not Responding (ANR) errors during long UI updates.",
+            "Jank caused by the CPU/GPU occasionally taking longer than one VSYNC interval (16.6ms for 60Hz) to prepare a frame, by allowing an extra buffer to hold a ready frame.",
+        ],
+        "answer": "Jank caused by the CPU/GPU occasionally taking longer than one VSYNC interval (16.6ms for 60Hz) to prepare a frame, by allowing an extra buffer to hold a ready frame.",
+        "explanation": "الـ VSYNC بيعمل synchronize بين الـ CPU/GPU والـ display refresh rate. في الـ double buffering العادي، لو الـ CPU/GPU أخدوا وقت أطول من فترة VSYNC واحدة (16.6ms لشاشة 60Hz) عشان يجهزوا الـ frame الجاي، الـ display هيضطر يعرض الـ frame القديم مرة تانية، وده بيسبب jank (تنتيشة). الـ Triple buffering بيضيف buffer تالت. لو الـ buffer الأولاني بيتعرض والـ CPU/GPU بيجهزوا الـ frame في الـ buffer التاني وأخدوا وقت أطول شوية، يقدروا يكملوا شغلهم في الـ buffer التالت. لو خلصوا تجهيز frame في أي من الـ buffer التاني أو التالت قبل الـ VSYNC الجاي، الـ display يقدر ياخد frame جديد وميحصلش jank. هو بيسمح ببعض التأخير في تجهيز الـ frame من غير ما يأثر مباشرة على الـ smoothness."
+    },
+    {
+        "question": "62. What is the purpose of the `key` parameter often used within Jetpack Compose loops (`forEach`, etc.) or with functions like `remember`?",
+        "options": [
+            "To provide a unique identifier for accessibility services.",
+            "To encrypt the state associated with the Composable.",
+            "To help Compose identify and preserve state or remember calculations across recompositions when the *position* of an item changes but its *identity* remains the same, preventing state loss or unnecessary recalculations.",
+            "To specify the rendering layer type (Software/Hardware)."
+        ],
+        "answer": "To help Compose identify and preserve state or remember calculations across recompositions when the *position* of an item changes but its *identity* remains the same, preventing state loss or unnecessary recalculations.",
+        "explanation": "لما Compose بتعمل recomposition لـ list مثلاً، لو ترتيب العناصر اتغير أو عنصر اتشال أو اتحط، Compose باي ديفولت بتعتمد على *ترتيب* الكود (positional memoization). ده معناه إن لو عنصر اتحرك من مكان لمكان، ممكن الـ state بتاعه يتفقد أو يتنسب لعنصر غلط. الـ `key` lambda بتسمحلك تدي لكل عنصر ID ثابت ومميز (مثلاً ID جاي من الداتا). لما تعمل كده، Compose بتقدر تتعرف على العنصر ده حتى لو مكانه اتغير في الـ list، وبالتالي بتحافظ على الـ state بتاعه (اللي معموله `remember`) أو بتمنع إعادة حسابات مرتبطة بيه كانت معمولة `remember(key) { ... }`."
+    },
+    {
+        "question": "63. In ART (Android Runtime), how does Generational Garbage Collection generally work and why is it often more efficient than non-generational GC?",
+        "options": [
+            "It divides the heap into fixed-size blocks and collects only blocks with high fragmentation.",
+            "It uses reference counting exclusively to collect objects as soon as they become unreachable.",
+            "It divides the heap into generations (e.g., Young, Old) based on object age, collecting the Young generation (where most objects die quickly) more frequently and with less overhead than full heap collections.",
+            "It runs the garbage collector on a separate, dedicated processor core."
+        ],
+        "answer": "It divides the heap into generations (e.g., Young, Old) based on object age, collecting the Young generation (where most objects die quickly) more frequently and with less overhead than full heap collections.",
+        "explanation": "الفكرة الأساسية في الـ Generational GC هي فرضية إن معظم الـ objects اللي بتتخلق بتموت وهي لسه 'صغيرة' (short-lived). عشان كده، الـ heap بيتقسم لمناطق (generations)، أشهرها الـ Young Generation (اللي فيه الـ objects الجديدة) والـ Old Generation (اللي فيه الـ objects اللي عاشت فترة). الـ GC بيركز شغله على الـ Young Generation ويعمله collect بشكل متكرر أكتر. بما إن معظم الـ objects هنا بتموت بسرعة، العملية دي بتكون سريعة وبتحتاج توقف التطبيق (pause time) لفترة قصيرة جداً. الـ objects اللي بتعيش في الـ Young Generation بتتنقل للـ Old Generation. الـ Old Generation بيتعمله collect بشكل أقل تكراراً، لكن لما بيحصل بيكون أبطأ شوية. الطريقة دي عموماً أكفأ من إنك تعمل scan لكل الـ heap كل مرة."
+    },
+    {
+        "question": "64. What is method inlining, as performed by compilers like R8 or ART's JIT/AOT, and what is its primary performance benefit?",
+        "options": [
+            "Replacing interface calls with direct class method calls.",
+            "Removing unused methods from the final code.",
+            "Replacing a call to a method with the actual code (body) of that method at the call site, reducing the overhead of the method call itself (stack manipulation, branching).",
+            "Merging multiple similar methods into a single generic method."
+        ],
+        "answer": "Replacing a call to a method with the actual code (body) of that method at the call site, reducing the overhead of the method call itself (stack manipulation, branching).",
+        "explanation": "الـ Method Inlining هو optimization تكنيك بيشيل الـ call لميثود معينة ويحط الكود بتاع الميثود دي مباشرة في المكان اللي كانت بتتنادى منه. ده بيوفر الـ overhead بتاع عملية استدعاء الميثود نفسها، اللي بتشمل حاجات زي تجهيز الـ stack frame، تمرير الـ parameters، والـ jump لعنوان الميثود والرجوع منه. لما الميثود بتكون صغيرة وبتتنادى كتير، الـ inlining ممكن يحسن الأداء بشكل ملحوظ. ده بيحصل يا إما وقت الـ compilation (زي R8 أو AOT بتاع ART) أو وقت التشغيل (JIT بتاع ART)."
+    },
+    {
+        "question": "65. When using `ViewModel` with Saved State (`SavedStateHandle`), what types of data are generally safe to store directly in the `SavedStateHandle`?",
+        "options": [
+            "Any object, including complex custom classes and Context references.",
+            "Only primitive types (Int, String, Boolean, etc.) and objects that implement `Parcelable` or `Serializable`, within reasonable size limits.",
+            "Only immutable data types like Kotlin data classes.",
+            "Only UI-related objects like Views or Drawables."
+        ],
+        "answer": "Only primitive types (Int, String, Boolean, etc.) and objects that implement `Parcelable` or `Serializable`, within reasonable size limits.",
+        "explanation": "الـ `SavedStateHandle` بيعتمد على نفس الميكانيزم بتاع `onSaveInstanceState` عشان يحفظ الـ state بتاع الـ ViewModel في حالة الـ process death. الميكانيزم ده بيستخدم `Bundle` عشان يخزن الداتا. الـ `Bundle` مصمم عشان يخزن كميات صغيرة نسبياً من الداتا اللي ممكن يحصلها serialization بسهولة. ده بيشمل الـ primitive types الأساسية (int, float, boolean, string, إلخ)، والـ arrays بتاعتها، وأي object بيطبق `Parcelable` (ودي الطريقة المفضلة في أندرويد للـ serialization) أو `Serializable` (أبطأ وأقل كفاءة). تخزين objects كبيرة أو معقدة أو أي حاجة فيها reference للـ Context هنا ممكن يسبب مشاكل أداء أو `TransactionTooLargeException` أو memory leaks."
+    },
+    {
+        "question": "66. What is the role of `CompositionLocal` in Jetpack Compose and when might you prefer it over passing parameters explicitly down the tree?",
+        "options": [
+            "To manage background coroutine scopes for Composables.",
+            "To provide data implicitly down the Composable tree without needing to pass it as a parameter through every intermediate function, useful for ambient data like themes or user preferences.",
+            "To define custom layout behaviors for sibling Composables.",
+            "To handle navigation state between different screens."
+        ],
+        "answer": "To provide data implicitly down the Composable tree without needing to pass it as a parameter through every intermediate function, useful for ambient data like themes or user preferences.",
+        "explanation": "الـ `CompositionLocal` بيوفر طريقة عشان تمرر بيانات لتحت في الـ Composable tree من غير ما تحتاج تضيفها كـ parameter لكل فانكشن في النص. الفكرة إنك بتعمل 'provide' للقيمة في مستوى معين في الـ tree، وأي Composable تحت المستوى ده يقدر يوصل للقيمة دي مباشرة باستخدام `CompositionLocal.current`. ده مفيد جداً للحاجات اللي تعتبر 'ambient' أو موجودة في البيئة المحيطة زي الـ Theme (ألوان، خطوط)، أو الـ locale الحالي، أو بيانات المستخدم اللي عمل login. بيخلي الكود أنضف لأنه بيشيل الـ parameters دي من الفانكشنز اللي مش محتاجاها بشكل مباشر."
+    },
+    {
+        "question": "67. What is 'Overdraw' in the context of Android UI rendering, and how can the 'Debug GPU Overdraw' developer option help identify it?",
+        "options": [
+            "Drawing outside the bounds of the screen.",
+            "Rendering the same pixel multiple times in a single frame, wasting GPU cycles. Debug GPU Overdraw visualizes this by coloring pixels based on how many times they were drawn.",
+            "Using too much GPU memory for textures.",
+            "Drawing UI elements significantly larger than needed for the display density."
+        ],
+        "answer": "Rendering the same pixel multiple times in a single frame, wasting GPU cycles. Debug GPU Overdraw visualizes this by coloring pixels based on how many times they were drawn.",
+        "explanation": "الـ Overdraw بيحصل لما السيستم بيرسم نفس البيكسل أكتر من مرة في نفس الـ frame الواحد. مثلاً، لو عندك خلفية بيضا، وفوقيها كارت أبيض، وفوقيه زرار أبيض، البيكسلات اللي تحت الزرار اترسمت 3 مرات. كل مرة زيادة دي استهلاك لموارد الـ GPU مالوش لازمة وممكن يبطئ الـ rendering خصوصاً في الأجهزة الضعيفة. الأداة بتاعة 'Debug GPU Overdraw' في الـ Developer Options بتلون الشاشة عشان توريك حجم الـ overdraw: اللون الأزرق يعني مرة واحدة (كويس)، الأخضر مرتين، الوردي 3 مرات، الأحمر 4 مرات أو أكتر (سيء جداً). هدفك تقلل الألوان الغامقة دي قدر الإمكان عن طريق تبسيط الـ layout، إزالة الخلفيات اللي مش ضرورية، استخدام `canvas.clipRect` صح في الـ custom views."
+    },
+    {
+        "question": "68. In Kotlin Coroutines, what is `SupervisorJob` and how does its exception handling differ from a regular `Job`?",
+        "options": [
+            "`SupervisorJob` allows coroutines to run with elevated system privileges.",
+            "`SupervisorJob` cancels all child coroutines as soon as the parent fails.",
+            "`SupervisorJob` makes exceptions within a child coroutine fail *only* that specific child and its own children, without cancelling sibling coroutines or the supervisor itself. Regular `Job` cancels the entire scope on failure.",
+            "`SupervisorJob` automatically retries failed coroutines."
+        ],
+        "answer": "`SupervisorJob` makes exceptions within a child coroutine fail *only* that specific child and its own children, without cancelling sibling coroutines or the supervisor itself. Regular `Job` cancels the entire scope on failure.",
+        "explanation": "في الـ structured concurrency بتاع Coroutines، لو استخدمت `Job` عادي (اللي بيتعمل باي ديفولت مع `coroutineScope` أو `launch` على scope عادي)، أي exception مش بيتعمله catch جوه أي child coroutine بيعمل propagate لفوق وبيعمل cancel للـ parent `Job` وكل الـ children التانيين. أما لو استخدمت `SupervisorJob` (مثلاً عن طريق `supervisorScope` أو `CoroutineScope(SupervisorJob())`)، الفشل في child واحد مش بيأثر على الـ supervisor نفسه ولا على الـ children التانيين (siblings). يعني الـ exception بيكون localized للـ child اللي فشل بس. ده مفيد في السيناريوهات اللي عندك فيها كذا task مستقل شغالين في نفس الـ scope ومش عايز فشل واحد منهم يوقف الباقيين (زي مثلاً scope بتاع `ViewModel` بيشغل كذا عملية في الخلفية)."
+    },
+    {
+        "question": "69. What is the purpose of the `invalidate()` method on an Android View, and how does it relate to `requestLayout()`?",
+        "options": [
+            "`invalidate()` triggers `onMeasure()`; `requestLayout()` triggers `onDraw()`.",
+            "`invalidate()` forces the view to be garbage collected; `requestLayout()` rebuilds the layout hierarchy.",
+            "`invalidate()` marks the view (or a portion of it) as needing to be redrawn (`onDraw()` will be called later), while `requestLayout()` indicates the view's bounds have changed and it needs to go through the measure and layout passes (`onMeasure()`, `onLayout()`) again.",
+            "`invalidate()` redraws immediately; `requestLayout()` redraws on the next frame."
+        ],
+        "answer": "`invalidate()` marks the view (or a portion of it) as needing to be redrawn (`onDraw()` will be called later), while `requestLayout()` indicates the view's bounds have changed and it needs to go through the measure and layout passes (`onMeasure()`, `onLayout()`) again.",
+        "explanation": "`invalidate()` بتقول للسيستم إن محتوى الـ View ده اتغير ومحتاج يترسم تاني. ده بيحط طلب في الـ queue والسيستم هينادي ميثود `onDraw()` بتاعة الـ View ده (وغالباً الـ parent بتاعه) في وقت لاحق (عادة في الـ VSYNC الجاي). أما `requestLayout()` فدي بتستخدم لما حجم أو أبعاد الـ View نفسه تتغير بشكل يخليه محتاج يعرف حجمه الجديد ويتحدد مكانه الجديد بالنسبة للـ parent بتاعه. ده بيخلي الـ View والـ hierarchy اللي فوقه يعدوا على مرحلتين تاني: `onMeasure` (عشان يحدد الأبعاد المطلوبة) و `onLayout` (عشان يحدد المكان والحجم الفعلي). نادراً ما تحتاج تنادي `requestLayout` إلا لو بتعمل custom view بيغير حجمه. `requestLayout` ضمنياً بتؤدي لـ `invalidate` في الآخر."
+    },
+    {
+        "question": "70. What is Certificate Pinning in the context of Android network security?",
+        "options": [
+            "Encrypting network traffic using TLS certificates.",
+            "Storing server certificates securely in the Android Keystore.",
+            "Hardcoding or securely configuring the app to trust only specific, expected server certificates or public keys, preventing Man-in-the-Middle (MitM) attacks even if a system-trusted CA is compromised.",
+            "Automatically rotating TLS certificates used by the application."
+        ],
+        "answer": "Hardcoding or securely configuring the app to trust only specific, expected server certificates or public keys, preventing Man-in-the-Middle (MitM) attacks even if a system-trusted CA is compromised.",
+        "explanation": "عادة، التطبيق بيثق في أي certificate موقعة من Certificate Authority (CA) موجودة وموثوقة في السيستم. الـ Certificate Pinning هو إجراء أمان إضافي بيخلي التطبيق بتاعك يحدد بالظبط إيه هي الـ certificate (أو الـ public key بتاعتها) المسموح يتصل بيها لسيرفر معين. التطبيق بيرفض يتصل بالسيرفر لو الـ certificate اللي جاية منه مش مطابقة للي متسجلة عنده (pinned). ده بيحميك من هجمات Man-in-the-Middle (MitM) حتى لو الـ attacker قدر يحصل على certificate سليمة وموقعة من CA موثوقة (مثلاً لو الـ CA نفسها اتعرضت لاختراق)."
+    },
+    {
+        "question": "71. In Jetpack Compose, what is `rememberUpdatedState` primarily used for?",
+        "options": [
+            "Remembering state across process death.",
+            "Creating a state holder that automatically updates when the underlying data source changes.",
+            "Capturing the most recent value of a parameter or state variable within a long-running lambda (like in `LaunchedEffect` or `DisposableEffect`) without causing the effect to restart when that value changes.",
+            "Remembering the previous state value before the current recomposition."
+        ],
+        "answer": "Capturing the most recent value of a parameter or state variable within a long-running lambda (like in `LaunchedEffect` or `DisposableEffect`) without causing the effect to restart when that value changes.",
+        "explanation": "الـ Side effects زي `LaunchedEffect` و `DisposableEffect` بيتعملها restart لو أي من الـ keys بتاعتها اتغيرت. ساعات بتبقى عايز الـ effect يفضل شغال، لكن جواه محتاج توصل لأحدث قيمة لـ state أو parameter ممكن تكون اتغيرت في recomposition حصلت والـ effect شغال. لو استخدمت الـ state/parameter ده مباشرة كـ key، الـ effect هيعمل restart. `rememberUpdatedState` بتحل المشكلة دي. هي بترجع `State` object بيحتوي دايماً على أحدث قيمة للـ variable اللي مررتها ليها، لكن الـ `State` object ده نفسه الـ reference بتاعه ثابت ومش بيعمل trigger للـ restart بتاع الـ effect. فتقدر تستخدم القيمة اللي جواه بأمان من غير ما تعمل restart للـ effect."
+    },
+    {
+        "question": "72. What is the difference between `WRAP_CONTENT`, `MATCH_PARENT`, and `0dp` (match_constraint) when used for a dimension in Android's `ConstraintLayout`?",
+        "options": [
+            "`WRAP_CONTENT` uses measured size, `MATCH_PARENT` fills parent, `0dp` sets size to zero.",
+            "`WRAP_CONTENT` is content size, `MATCH_PARENT` is deprecated (use `0dp` with constraints to edges), `0dp` means the size is determined entirely by the constraints applied to that dimension.",
+            "`WRAP_CONTENT` uses constraints, `MATCH_PARENT` uses content size, `0dp` fills parent.",
+            "They are functionally identical within a `ConstraintLayout`."
+        ],
+        "answer": "`WRAP_CONTENT` is content size, `MATCH_PARENT` is deprecated (use `0dp` with constraints to edges), `0dp` means the size is determined entirely by the constraints applied to that dimension.",
+        "explanation": "في `ConstraintLayout`: `WRAP_CONTENT` بتخلي الـ view ياخد الحجم اللي محتاجه عشان يعرض المحتوى بتاعه بالظبط. `MATCH_PARENT` لا ينصح باستخدامها داخل `ConstraintLayout`؛ لو عايز الـ view يملى الـ parent، المفروض تستخدم `0dp` وتربط الـ constraints بتاعته (مثلاً الـ start والـ end) بالـ parent. `0dp` (أو `MATCH_CONSTRAINT`) هي القيمة الأساسية في `ConstraintLayout` ومعناها إن حجم الـ view في البُعد ده (width أو height) مش متحدد بقيمته هو ولا بالـ parent، لكن هيتم تحديده بالكامل عن طريق الـ constraints اللي أنت مطبقها عليه (زي المسافات للـ edges التانية، أو الـ percentage، أو الـ ratio)."
+    },
+    {
+        "question": "73. How can using Kotlin's `inline class` (or `value class`) potentially impact runtime performance compared to using a regular class wrapper?",
+        "options": [
+            "Increases performance by enabling multi-threaded access.",
+            "Decreases performance due to extra validation checks.",
+            "Can improve performance by avoiding object allocation overhead for the wrapper class at runtime; the compiler often uses the underlying primitive type directly where possible.",
+            "No significant performance difference."
+        ],
+        "answer": "Can improve performance by avoiding object allocation overhead for the wrapper class at runtime; the compiler often uses the underlying primitive type directly where possible.",
+        "explanation": "الـ `inline class` (أو `value class` في النسخ الأحدث) بتسمحلك تعمل type safety wrapper حوالين نوع تاني (عادة primitive) من غير ما تضيف overhead بتاع object allocation وقت التشغيل. الكومبايلر بيحاول يتجنب عمل object للكلاس الـ inline ده وبيستخدم القيمة الأساسية اللي جواه مباشرة في الـ bytecode الناتج، إلا في حالات معينة زي لما تستخدمه كـ generic type أو nullable type. بالتالي، استخدامها ممكن يحسن الأداء، خصوصاً في الـ performance-critical code، عن طريق تقليل عدد الـ objects اللي بتتخلق والـ pressure على الـ Garbage Collector."
+    },
+    {
+        "question": "74. What is the 'application id' in an Android `build.gradle` file, and how does it differ from the 'package name' declared in the `AndroidManifest.xml`?",
+        "options": [
+            "They are always the same; `applicationId` overrides the manifest `packageName`.",
+            "`applicationId` is used only for testing; `packageName` is used for release builds.",
+            "`applicationId` is the unique ID used by the Play Store and the device to identify the app and cannot be changed after publishing. `packageName` is used for R class generation and resolving relative Activity/Service names in the manifest and can technically differ (though discouraged).",
+            "`packageName` determines the Play Store ID; `applicationId` determines the R class package."
+        ],
+        "answer": "`applicationId` is the unique ID used by the Play Store and the device to identify the app and cannot be changed after publishing. `packageName` is used for R class generation and resolving relative Activity/Service names in the manifest and can technically differ (though discouraged).",
+        "explanation": "الـ `applicationId` اللي بتحدده في ملف `build.gradle` (عادة `app/build.gradle`) هو الاسم الفريد والنهائي للتطبيق بتاعك على جهاز المستخدم وفي Google Play Store. بمجرد ما تنشر التطبيق، مينفعش تغيره. أما الـ `packageName` اللي بتعلنه في أول ملف `AndroidManifest.xml`، فده بيستخدمه الـ build tools عشان تحدد الـ namespace بتاع كلاس `R` (اللي فيه الـ resource IDs) وعشان تعمل resolve لأسماء الـ components (Activities, Services, etc.) لو كتبتها بشكل relative جوه الـ Manifest. زمان كانوا لازم يكونوا زي بعض، لكن دلوقتي الـ build system بيسمح إنهم يكونوا مختلفين (عن طريق `applicationId` في gradle). بس الأفضل والممارسة الشائعة إنك تخليهم زي بعض إلا لو عندك سبب قوي جداً (زي تغيير اسم التطبيق مع الحفاظ على الـ ID القديم)."
+    },
+    {
+        "question": "75. When implementing a custom `Layout` Composable in Jetpack Compose, what are the primary responsibilities of the `measure` and `layout` steps within the measure policy lambda?",
+        "options": [
+            "`measure` draws the children; `layout` positions them.",
+            "`measure` calculates constraints; `layout` applies modifiers.",
+            "`measure` asks each child measurable how much space it wants given certain constraints and determines the custom layout's own size; `layout` places each child placeable at specific coordinates within the custom layout.",
+            "`measure` positions children; `layout` measures the parent."
+        ],
+        "answer": "`measure` asks each child measurable how much space it wants given certain constraints and determines the custom layout's own size; `layout` places each child placeable at specific coordinates within the custom layout.",
+        "explanation": "لما تعمل custom layout في Compose، الـ measure policy lambda اللي بتمررها للـ `Layout` Composable ليها خطوتين أساسيتين: 1) الـ `measure` step: هنا بتاخد list بالـ `Measurable`s (children) والـ `Constraints` اللي جاية من الـ parent. مسئوليتك إنك تنادي `measure` على كل child (أو اللي محتاج تمجره) وتديله constraints مناسبة ليه عشان تعرف هو محتاج حجم قد إيه. بناءً على أحجام الـ children المطلوبة، بتقرر الحجم النهائي للـ custom layout بتاعك وترجعه عن طريق `layout(width, height) { ... }`. 2) الـ `layout` step (جوه الـ block بتاع `layout(width, height)`): هنا بتاخد نتيجة الـ measure step (اللي هي list بالـ `Placeable`s، كل واحد بالحجم اللي اتقاس بيه). مسئوليتك إنك تنادي `placeRelative(x, y)` أو `place(x, y)` على كل child عشان تحدد مكانه (إحداثياته) بالظبط جوه الـ custom layout بتاعك."
+    },
+    {
+        "question": "76. What is Proguard/R8's `-keep` rule primarily used for, especially concerning reflection or JNI?",
+        "options": [
+            "To remove specific classes or methods from the final build.",
+            "To prevent specified classes, methods, or fields from being removed (shrunk) or renamed (obfuscated) by R8, which is essential for code accessed via reflection, JNI, or serialization.",
+            "To specify entry points for unit tests.",
+            "To enable more aggressive code optimization rules."
+        ],
+        "answer": "To prevent specified classes, methods, or fields from being removed (shrunk) or renamed (obfuscated) by R8, which is essential for code accessed via reflection, JNI, or serialization.",
+        "explanation": "لما R8 (أو Proguard) بيعمل shrinking و obfuscation، هو بيحلل الكود بتاعك عشان يشوف إيه اللي مستخدم وإيه اللي لأ، وبيغير الأسماء. لكن لو أنت بتوصل لكلاس أو ميثود أو فيلد عن طريق اسمه كـ String (زي في حالة الـ Reflection أو الـ JNI)، الـ R8 مش هيقدر يعرف إن الكود ده مستخدم وممكن يشيله أو يغير اسمه، وده يسبب crash وقت التشغيل. قاعدة `-keep` بتسمحلك تقول لـ R8 \"حافظ على الكلاس/الميثود/الفيلد ده بالاسم بتاعه زي ما هو ومتشيلهوش ومتغيرش اسمه\"، وده ضروري عشان تضمن إن الأجزاء دي هتفضل شغالة صح بعد عملية الـ build."
+    },
+    {
+        "question": "77. How does the Android system typically handle memory pressure using Low Memory Killer (LMK)?",
+        "options": [
+            "It compresses unused memory pages using zRAM.",
+            "It requests running apps to voluntarily release memory via `onTrimMemory()`.",
+            "It kills background processes based on their priority (LRU cache order, process state, oom_adj score) to reclaim memory when system memory runs low.",
+            "It moves less frequently used apps to swap storage on disk."
+        ],
+        "answer": "It kills background processes based on their priority (LRU cache order, process state, oom_adj score) to reclaim memory when system memory runs low.",
+        "explanation": "الـ Low Memory Killer (LMK) هو ميكانيزم في الـ kernel بتاع أندرويد بيشتغل لما الميموري بتاعة السيستم بتقل عن حد معين (thresholds). وظيفته الأساسية إنه يقتل processes شغالة في الخلفية عشان يفضي memory للـ foreground app أو للسيستم نفسه. عملية الاختيار بتعتمد على أولويات الـ processes، اللي بتتحدد بناءً على كذا عامل أهمهم: ترتيبها في الـ LRU (Least Recently Used) cache (الـ process اللي المستخدم سابها من زمان ليها أولوية أقل)، حالتها (process فاضية ولا فيها service ولا UI)، وقيمة الـ `oom_adj_score` بتاعتها اللي السيستم بيظبطها. الـ process اللي ليها أقل أولوية (أعلى `oom_adj_score`) هي اللي بتتقفل الأول."
+    },
+    {
+        "question": "78. What is the 'Recomposition Scope' in Jetpack Compose and how does modifying state within it typically trigger recomposition?",
+        "options": [
+            "The lifecycle scope of the hosting Activity/Fragment.",
+            "A logical grouping of Composables defined by layout nodes. Modifying state invalidates the nearest enclosing scope, causing it and potentially its children to be re-evaluated.",
+            "The CoroutineScope used for launching side effects.",
+            "A specific region on the screen managed by the WindowManager."
+        ],
+        "answer": "A logical grouping of Composables defined by layout nodes. Modifying state invalidates the nearest enclosing scope, causing it and potentially its children to be re-evaluated.",
+        "explanation": "الـ Compose compiler بيقسم الـ Composable tree بتاعك لوحدات منطقية اسمها Recomposition Scopes. الـ scope ده عادة بيكون مرتبط بـ Composable function بتقرا state معين. لما الـ `State` object ده قيمته بتتغير (يعني بتعمل set للـ `.value` بتاع `MutableState`)، الـ Compose runtime بيعمل invalidate لأقرب Recomposition Scope كان بيقرا الـ state ده. عملية الـ invalidation دي بتخلي الـ runtime يعيد استدعاء (recompose) الـ Composable function(s) اللي مرتبطة بالـ scope ده، وتبعاً لذلك ممكن الـ children بتاعتها كمان تتعملها recompose، إلا إذا كانت Compose تقدر تعمل skip ليهم بناءً على الـ stability بتاعة الـ inputs بتاعتهم."
+    },
+    {
+        "question": "79. What problem does using `Modifier.then()` solve compared to simply chaining modifiers in Jetpack Compose (e.g., `Modifier.padding().background()` )?",
+        "options": [
+            "`then()` applies modifiers asynchronously.",
+            "`then()` allows conditional application of a modifier chain based on a state, ensuring proper ordering and avoiding potential issues if the condition changes.",
+            "`then()` optimizes the modifier chain by merging compatible modifiers.",
+            "`then()` provides access to low-level drawing commands."
+        ],
+        "answer": "`then()` allows conditional application of a modifier chain based on a state, ensuring proper ordering and avoiding potential issues if the condition changes.",
+        "explanation": "لو عايز تطبق Modifier أو مجموعة من الـ Modifiers بشكل شرطي ( بناءً على if statement مثلاً)، استخدام `then()` هو الطريقة الصح. لو حاولت تعمل كده عن طريق if/else جوه الـ chain العادي (`Modifier.padding(if (condition) 8.dp else 4.dp)`) ده ممكن ميشتغلش لكل الـ Modifiers أو يكون مش واضح. `Modifier.then(otherModifier)` بتضمن إن `otherModifier` هيتطبق *بعد* الـ Modifier اللي قبل الـ `then()`. فممكن تعمل: `Modifier.padding(8.dp).then(if (isSpecial) Modifier.background(Color.Red) else Modifier)` . هنا الـ background هيتطبق (أو لأ) *بعد* الـ padding، والترتيب ده مهم جداً لسلوك الـ Modifier."
+    },
+    {
+        "question": "80. What is the main difference between Android's `SharedPreferences` and `EncryptedSharedPreferences`?",
+        "options": [
+            "`SharedPreferences` stores data in XML, `EncryptedSharedPreferences` uses JSON.",
+            "`EncryptedSharedPreferences` is significantly faster due to hardware acceleration.",
+            "`EncryptedSharedPreferences` automatically encrypts both keys and values using the Android Keystore system, providing secure storage for sensitive primitive data, while `SharedPreferences` stores data in plaintext XML.",
+            "`SharedPreferences` is deprecated in favor of Jetpack DataStore."
+        ],
+        "answer": "`EncryptedSharedPreferences` automatically encrypts both keys and values using the Android Keystore system, providing secure storage for sensitive primitive data, while `SharedPreferences` stores data in plaintext XML.",
+        "explanation": "الـ `SharedPreferences` العادية بتخزن الداتا (key-value pairs) في ملف XML في الـ private storage بتاع التطبيق، لكن الداتا دي بتكون plaintext (نص عادي). أي حد يقدر يوصل للملف ده (مثلاً على جهاز rooted) يقدر يقرا الداتا بسهولة. الـ `EncryptedSharedPreferences` (جزء من مكتبة Jetpack Security) بتوفر نفس الـ API بتاعة `SharedPreferences` لكنها بتعمل تشفير (encryption) للـ keys والـ values قبل ما تخزنهم في الملف، باستخدام master key بيتم إدارته بشكل آمن عن طريق الـ Android Keystore system. ده بيخليها مناسبة لتخزين بيانات حساسة زي tokens أو user settings معينة بشكل آمن."
+    },
+    {
+        "question": "81. In Gradle, what is the 'Configuration Cache' and how does it improve build times compared to the regular Gradle build cache?",
+        "options": [
+            "It caches downloaded dependencies; the build cache caches task outputs.",
+            "It caches the result of the configuration phase (the task graph and task inputs), allowing Gradle to skip the configuration phase entirely on subsequent builds if inputs haven't changed.",
+            "It's a distributed cache shared across multiple developer machines.",
+            "It caches only the `build.gradle` files themselves."
+        ],
+        "answer": "It caches the result of the configuration phase (the task graph and task inputs), allowing Gradle to skip the configuration phase entirely on subsequent builds if inputs haven't changed.",
+        "explanation": "الـ Gradle build ليه مرحلتين أساسيتين قبل التنفيذ: Initialization و Configuration. مرحلة الـ Configuration هي اللي بتقرا كل الـ `build.gradle` scripts، تحدد الـ tasks اللي هتتنفذ، وتجهز الـ inputs بتاعتها. المرحلة دي ممكن تاخد وقت طويل في المشاريع الكبيرة. الـ Gradle Build Cache العادي بيعمل cache للـ output بتاع الـ tasks نفسها. أما الـ Configuration Cache، فده بيعمل cache لنتيجة مرحلة الـ Configuration كلها (الـ task graph). لو في الـ build اللي بعده، الـ inputs بتاعة الـ configuration phase (زي الـ build scripts نفسها، gradle properties، إلخ) متغيرتش، Gradle يقدر يعمل load للـ task graph ده من الـ cache ويتخطى مرحلة الـ Configuration كلها، وده بيسرع الـ build بشكل كبير جداً، خصوصاً في الـ builds اللي مفيهاش تغييرات كتير."
+    },
+    {
+        "question": "82. What is the purpose of `WindowInsets` in modern Android development, particularly with edge-to-edge UI?",
+        "options": [
+            "To define the absolute pixel size of the application window.",
+            "To handle configuration changes like screen rotation.",
+            "To provide information about system UI elements that overlap or interact with the app's window (like status bars, navigation bars, keyboards), allowing the app to adjust its layout accordingly and draw behind them (edge-to-edge).",
+            "To manage different display modes (e.g., HDR, high refresh rate)."
+        ],
+        "answer": "To provide information about system UI elements that overlap or interact with the app's window (like status bars, navigation bars, keyboards), allowing the app to adjust its layout accordingly and draw behind them (edge-to-edge).",
+        "explanation": "الـ `WindowInsets` APIs الحديثة (خصوصاً في Jetpack Core و Compose) بتدي للتطبيق معلومات دقيقة عن المساحات اللي السيستم UI بيحتلها أو بيأثر فيها على شاشة التطبيق. ده بيشمل الـ status bar فوق، الـ navigation bar تحت (سواء 3-button أو gesture navigation)، والـ keyboard لما يظهر. باستخدام الـ insets دي، التطبيق يقدر يعرف المساحات الآمنة لوضع المحتوى بتاعه (عشان ميتغطاش بالـ system bars أو الـ keyboard) وفي نفس الوقت يقدر يرسم في المساحات اللي ورا الـ system bars (edge-to-edge) عشان يستغل الشاشة كلها ويوفر تجربة immersive أكتر، مع تطبيق padding مناسب بناءً على قيم الـ insets عشان المحتوى المهم يفضل ظاهر."
+    },
+    {
+        "question": "83. When using Kotlin Flows, what is the difference between a 'cold' Flow and a 'hot' Flow (like `StateFlow` or `SharedFlow`)?",
+        "options": [
+            "Cold flows run on background threads, hot flows run on the main thread.",
+            "Cold flows require `suspend` functions, hot flows do not.",
+            "A cold Flow starts executing its producer code only when a terminal operator (like `collect`) is applied, and typically restarts for each new collector. A hot Flow exists and emits values independently of collectors; collectors get the current/future values.",
+            "Cold flows are used for UI state, hot flows are used for network requests."
+        ],
+        "answer": "A cold Flow starts executing its producer code only when a terminal operator (like `collect`) is applied, and typically restarts for each new collector. A hot Flow exists and emits values independently of collectors; collectors get the current/future values.",
+        "explanation": "الـ Flow العادي اللي بيتعمل بـ `flow { ... }` builder بيكون 'cold'. ده معناه إن الكود اللي جوه الـ builder (الـ producer) مش بيشتغل غير لما حد يعمل عليه `collect` (أو أي terminal operator تاني). وكل مرة حد جديد بيعمل `collect`، الكود بتاع الـ producer بيبدأ من الأول للـ collector ده. أما الـ Flows الـ 'hot' زي `StateFlow` و `SharedFlow`، فهي بتكون موجودة وشغالة وبتبعت قيم حتى لو مفيش حد بيعمل `collect`. لما collector جديد يبدأ يجمع منها، هو بياخد القيم الحالية (في حالة `StateFlow` أو `SharedFlow` مع `replay`) والقيم اللي جاية بعد كده. الـ Hot flows مناسبة لتمثيل حاجات ليها state أو أحداث بتحصل في التطبيق بشكل عام."
+    },
+    {
+        "question": "84. What is the Android Keystore System primarily used for?",
+        "options": [
+            "Storing large amounts of application data securely.",
+            "Managing user login credentials and session tokens.",
+            "Providing a secure hardware-backed (or software) container for storing cryptographic keys (like signing or encryption keys) making them difficult to extract from the device.",
+            "Caching compiled code (DEX files)."
+        ],
+        "answer": "Providing a secure hardware-backed (or software) container for storing cryptographic keys (like signing or encryption keys) making them difficult to extract from the device.",
+        "explanation": "الـ Android Keystore هو system service بيوفر مكان آمن لتخزين وإدارة المفاتيح التشفيرية (cryptographic keys). الميزة الأساسية إن الـ key material نفسها (القيمة السرية للمفتاح) ممكن تتخزن جوه secure hardware (زي الـ Trusted Execution Environment - TEE أو Secure Element - SE) لو الجهاز بيدعم ده، أو على الأقل بتكون محمية بالـ OS. ده بيخلي عملية استخراج المفتاح من الجهاز صعبة جداً حتى لو الجهاز rooted. التطبيق يقدر يستخدم المفاتيح دي لعمليات تشفير/فك تشفير أو توقيع رقمي من غير ما يحتاج يتعامل مع الـ key material مباشرة، وده بيزود الأمان بشكل كبير."
+    },
+    {
+        "question": "85. In Jetpack Compose, what is `SubcomposeLayout` and in what scenarios might it be useful?",
+        "options": [
+            "A layout that arranges children horizontally or vertically based on remaining space.",
+            "A layout used for creating animated transitions between different Composables.",
+            "A low-level layout primitive that allows measuring and laying out children during the parent's layout phase, often needed when a child's content depends on the space allocated by the parent *after* an initial measurement.",
+            "A Composable specifically designed for nesting ScrollViews."
+        ],
+        "answer": "A low-level layout primitive that allows measuring and laying out children during the parent's layout phase, often needed when a child's content depends on the space allocated by the parent *after* an initial measurement.",
+        "explanation": "`SubcomposeLayout` هو layout primitive متقدم وقوي في Compose. بيسمحلك تأجل جزء من الـ composition والـ measurement بتاع الـ children لوقت الـ layout phase بتاع الـ parent نفسه. يعني تقدر تقيس جزء من الـ layout الأول، وبناءً على النتيجة دي، تقرر إيه هي الـ Composables التانية اللي محتاج تعملها compose وتقيسها وتحدد مكانها. ده مفيد في سيناريوهات معقدة زي مثلاً: عمل layout زي الـ `BoxWithConstraints` (اللي بيديك الـ constraints الفعلية كـ state)، أو عمل UI زي الـ Dropdown Menu اللي محتوى الـ menu بيتعمله compose و measure بس لما الـ menu يتفتح وبيبقى معتمد على مكان الـ anchor اللي فتحه."
+    },
+    {
+        "question": "86. What is the difference between `implementation`, `api`, and `compileOnly` dependency configurations in Gradle?",
+        "options": [
+            "`implementation` hides dependencies, `api` exposes them, `compileOnly` includes them only at runtime.",
+            "`implementation` includes for compile/runtime but doesn't expose to consumers, `api` includes for compile/runtime and exposes to consumers, `compileOnly` includes only for compile time (not at runtime).",
+            "`implementation` is for Java, `api` is for Kotlin, `compileOnly` is for annotations.",
+            "They are interchangeable and only affect build speed."
+        ],
+        "answer": "`implementation` includes for compile/runtime but doesn't expose to consumers, `api` includes for compile/runtime and exposes to consumers, `compileOnly` includes only for compile time (not at runtime).",
+        "explanation": "لما تعرف dependency في موديول A: `implementation`: الـ dependency دي بتكون متاحة للكود جوه موديول A في وقت الـ compile ووقت الـ runtime، لكن لو فيه موديول تاني B بيعتمد على A، موديول B مش هيقدر يشوف أو يستخدم الـ dependency دي مباشرة (transitive dependency). ده بيحسن الـ build speed لأن تغيير الـ dependency دي في A مش بيعمل recompile لـ B. `api`: زي `implementation` لكن الـ dependency دي بتكون exposed للموديولات اللي بتعتمد على A. يعني موديول B يقدر يستخدمها مباشرة. ده ضروري لو موديول A بيستخدم types من الـ dependency دي في الـ public API بتاعه. `compileOnly`: الـ dependency دي بتكون متاحة لموديول A في وقت الـ compile بس، لكن مش بتتضمن في الـ runtime classpath. ده مفيد لحاجات زي annotation processors أو libraries زي Lombok."
+    },
+    {
+        "question": "87. What is 'Jank' in Android performance, and what tool is most commonly used to diagnose its specific causes (e.g., long measure/layout passes, slow drawing)?",
+        "options": [
+            "Slow network response time; diagnosed with Network Profiler.",
+            "High memory usage; diagnosed with Memory Profiler.",
+            "Skipped UI frames resulting in stuttering or non-smooth animations/scrolling; diagnosed primarily using Systrace/Perfetto to analyze VSYNC intervals and work done on the UI thread.",
+            "Application crashes; diagnosed with Crashlytics."
+        ],
+        "answer": "Skipped UI frames resulting in stuttering or non-smooth animations/scrolling; diagnosed primarily using Systrace/Perfetto to analyze VSYNC intervals and work done on the UI thread.",
+        "explanation": "الـ Jank هو المصطلح اللي بيستخدم لوصف الـ stutter أو الـ hiccups اللي بتحصل في الـ UI لما التطبيق مبيقدرش يجهز ويعرض frame جديد في الوقت المحدد بالـ VSYNC (عادة 16.6ms لشاشة 60Hz). ده بيخلي السيستم يعرض الـ frame القديم تاني وبيبان للمستخدم كتنتيشة أو عدم سلاسة في الحركة أو الـ scrolling. الأداة الأساسية لتشخيص سبب الـ jank هي Systrace (أو الأداة الأحدث والأقوى Perfetto). الأدوات دي بتسجل الأحداث اللي بتحصل على مستوى السيستم كله (CPU scheduling, UI thread work, RenderThread work, VSYNC signals) وبتعرضها على timeline، فتقدر تشوف بالظبط أنهي جزء من شغلك (زي measure/layout pass طويل، `onDraw` بطيء، شغل كتير على الـ UI thread، GC pause) هو اللي خد وقت أطول من الـ 16.6ms وسبب الـ frame drop."
+    },
+    {
+        "question": "88. In Kotlin, what are 'reified type parameters' and what capability do they enable, often used with inline functions?",
+        "options": [
+            "Parameters that are automatically Parcelable.",
+            "Type parameters that exist only at compile time and are erased at runtime.",
+            "Type parameters (used with `inline` functions) whose actual type argument is preserved and accessible at runtime, allowing operations like `is` checks or getting the `::class.java` of the generic type.",
+            "Parameters that can hold either a value or a function type."
+        ],
+        "answer": "Type parameters (used with `inline` functions) whose actual type argument is preserved and accessible at runtime, allowing operations like `is` checks or getting the `::class.java` of the generic type.",
+        "explanation": "عادة في Kotlin/Java، الـ generic type information بيحصلها erasure وقت التشغيل، يعني مينفعش تعرف الـ actual type argument بتاع generic type parameter (زي `T` في `List<T>`). لكن لو عندك `inline` function وعلمت الـ type parameter بتاعها بكلمة `reified`، الكومبايلر بيعمل inline للكود بتاع الفانكشن دي وللـ actual type argument في المكان اللي بتناديها منه. ده بيخلي الـ type information متاحة وقت التشغيل جوه الـ inline function. بالتالي، تقدر تعمل حاجات زي `myVar is T` أو `T::class.java` جوه الفانكشن، وده مش ممكن مع الـ generic types العادية. ده مفيد جداً في عمل فانكشنز زي `myIntent.getParcelableExtra<MyType>(...)` أو `startActivity<MyActivity>(...)`."
+    },
+    {
+        "question": "89. What is the purpose of `android:windowSoftInputMode` attribute in the `AndroidManifest.xml` for an Activity?",
+        "options": [
+            "To set the default keyboard type (numeric, text, etc.).",
+            "To control how the activity's main window interacts with the soft keyboard: whether the window resizes (`adjustResize`), pans (`adjustPan`), or stays unchanged, and whether the keyboard is initially hidden or visible.",
+            "To enable or disable hardware keyboard input.",
+            "To change the visual theme of the soft keyboard."
+        ],
+        "answer": "To control how the activity's main window interacts with the soft keyboard: whether the window resizes (`adjustResize`), pans (`adjustPan`), or stays unchanged, and whether the keyboard is initially hidden or visible.",
+        "explanation": "الـ attribute ده بيتحكم في حاجتين أساسيتين لما الـ soft keyboard (لوحة المفاتيح اللي بتظهر على الشاشة) تظهر أو تختفي وهي مرتبطة بـ Activity معينة: 1) الـ Adjustment Mode: إزاي الـ layout بتاع الـ Activity هيتأثر. أشهر قيمتين هما `adjustResize` (الـ Activity بيتعملها resize عشان المحتوى يبقى فوق الكيبورد، وده المفضل عادةً) و `adjustPan` (الـ Activity كلها بتتحرك لفوق عشان الـ input field اللي فيه focus يبقى ظاهر فوق الكيبورد، لكن ممكن يغطي جزء تاني من الـ UI). ممكن كمان تخليه `adjustNothing`. 2) الـ Visibility Mode: حالة الكيبورد الأولية لما الـ Activity تفتح (زي `stateHidden`, `stateVisible`, `stateUnchanged`)."
+    },
+    {
+        "question": "90. What is the difference between `Context.getSystemService()` and `ContextCompat.getSystemService()`?",
+        "options": [
+            "`Context.getSystemService()` returns nullable types, `ContextCompat` returns non-nullable.",
+            "`ContextCompat.getSystemService()` automatically requests permissions if needed.",
+            "`ContextCompat.getSystemService()` provides a type-safe way to get system services using the service class (e.g., `NotificationManager::class.java`) and handles compatibility across different Android versions for some services, whereas `Context.getSystemService()` uses string constants and requires manual casting.",
+            "`Context.getSystemService()` is faster as it's a direct call."
+        ],
+        "answer": "`ContextCompat.getSystemService()` provides a type-safe way to get system services using the service class (e.g., `NotificationManager::class.java`) and handles compatibility across different Android versions for some services, whereas `Context.getSystemService()` uses string constants and requires manual casting.",
+        "explanation": "الطريقة القديمة `Context.getSystemService(String)` كانت بتاخد اسم الـ service كـ String constant (زي `Context.NOTIFICATION_SERVICE`) وبترجع `Object` عام بتحتاج تعمله cast للنوع الصح (زي `NotificationManager`). ده كان عرضة للأخطاء (typos في الـ String أو cast غلط). `ContextCompat.getSystemService(Context, Class<T>)` اللي جاية من مكتبة AndroidX (Jetpack) بتحل المشكلة دي. بتاخد الـ `Context` والـ `Class` بتاعة الـ service اللي أنت عايزه (زي `NotificationManager::class.java`) وبترجعلك object من النوع ده مباشرة (type-safe). بالإضافة لكده، لبعض الـ services، هي بتتعامل مع اختلافات بسيطة بين نسخ الأندرويد المختلفة."
+    },
+     {
+        "question": "91. When might you choose to use a `Channel` over a `SharedFlow` in Kotlin Coroutines?",
+        "options": [
+            "When you need multiple collectors to receive the same stream of events.",
+            "When you need a hot stream that represents state.",
+            "For modeling producer-consumer scenarios where each element is intended to be processed by exactly one consumer, or for communication/synchronization between specific coroutines.",
+            "When backpressure handling is not required."
+        ],
+        "answer": "For modeling producer-consumer scenarios where each element is intended to be processed by exactly one consumer, or for communication/synchronization between specific coroutines.",
+        "explanation": "الـ `Channel` أقرب لمفهوم الـ blocking queue وبيستخدم أساساً للتواصل بين coroutines محددة (point-to-point or multi-point communication). هو مثالي لسيناريوهات الـ producer-consumer، يعني coroutine بينتج عناصر و coroutine تاني (أو أكتر) بيستهلكها، مع ضمان إن كل عنصر بيتم استهلاكه مرة واحدة بس (عادة). كمان ممكن تستخدمه للـ synchronization بين coroutines (زي استخدام `RENDEZVOUS` channel). أما `SharedFlow` فهو مصمم للـ broadcasting، يعني مصدر واحد بيبعت updates وكذا collector ممكن يستمعوا ليها في نفس الوقت وكل واحد ياخد نسخة من الـ update."
+    },
+    {
+        "question": "92. What is the primary function of the Hardware Composer (HWC) HAL in the Android graphics stack?",
+        "options": [
+            "To execute GPU commands for rendering.",
+            "To manage CPU scheduling for rendering threads.",
+            "To composite different hardware-accelerated layers (e.g., from SurfaceView, textures, system UI) directly using dedicated display hardware, offloading work from the GPU and reducing power consumption.",
+            "To decode video streams using hardware codecs."
+        ],
+        "answer": "To composite different hardware-accelerated layers (e.g., from SurfaceView, textures, system UI) directly using dedicated display hardware, offloading work from the GPU and reducing power consumption.",
+        "explanation": "الأندرويد بيرسم الـ UI بتاعه في صورة layers منفصلة (زي الـ status bar, الـ navigation bar, الـ app UI, و ممكن surface تانية زي بتاعة فيديو). الـ Hardware Composer (HWC) Hardware Abstraction Layer (HAL) هو component بيشتغل مع الـ SurfaceFlinger. وظيفته إنه يشوف إيه هي الـ layers المتاحة دي ويحاول يعملها composite (يدمجها مع بعض عشان تظهر على الشاشة) باستخدام hardware متخصص في الـ display controller نفسه، بدل ما يخلي الـ GPU يعمل الشغل ده عن طريق الـ OpenGL/Vulkan. ده بيوفر شغل على الـ GPU وبيقلل استهلاك الطاقة، خصوصاً لو فيه layers كتير ثابتة أو بتتغير بشكل بسيط."
+    },
+    {
+        "question": "93. What is the purpose of the `android.enableJetifier=true` flag in `gradle.properties`?",
+        "options": [
+            "Enables experimental Jetpack features.",
+            "Forces all dependencies to use the latest Jetpack versions.",
+            "Allows an AndroidX project to consume libraries that still depend on the old Support Library by automatically migrating their bytecode and resources during the build.",
+            "Enables faster compilation using the JetBrains compiler."
+        ],
+        "answer": "Allows an AndroidX project to consume libraries that still depend on the old Support Library by automatically migrating their bytecode and resources during the build.",
+        "explanation": "لما جوجل عملت ترحيل من الـ old Support Libraries لـ AndroidX، كتير من الـ third-party libraries خدت وقت عشان تحدث الـ dependencies بتاعتها. الـ Jetifier tool (اللي بيشتغل لما تحط الـ flag ده بـ `true`) بيحل المشكلة دي مؤقتاً. هو بيعمل scan للـ dependencies بتاعتك وقت الـ build، ولو لقى أي library لسه بتعتمد على الـ classes القديمة بتاعة الـ Support Library، هو بيعمل rewrite للـ bytecode بتاعها وللـ resources عشان تستخدم الـ classes المكافئة ليها في AndroidX. ده بيسمحلك تستخدم الـ libraries القديمة دي في مشروعك اللي معتمد على AndroidX من غير مشاكل compatibility. (حالياً، معظم الـ libraries اتحدثت والمفروض متعتمدش عليه لو مش محتاجه)."
+    },
+    {
+        "question": "94. In Jetpack Compose, how can `derivedStateOf` help optimize recompositions?",
+        "options": [
+            "By ensuring state updates only happen on the main thread.",
+            "By automatically saving state across process death.",
+            "By creating a derived state that only triggers recomposition of its readers when its *result* changes, even if the underlying states it reads change more frequently.",
+            "By converting a `MutableState` into an immutable `State`."
+        ],
+        "answer": "By creating a derived state that only triggers recomposition of its readers when its *result* changes, even if the underlying states it reads change more frequently.",
+        "explanation": "تخيل عندك state بيعتمد على حسابات معينة من state تاني (أو أكتر). مثلاً، `val listIsEmpty = remember { derivedStateOf { myList.isEmpty() } }`. لو استخدمت `myList.isEmpty()` مباشرة جوه الـ Composable، أي تغيير في `myList` (حتى لو مش بيغير هل هي فاضية ولا لأ، زي إضافة عنصر لـ list مش فاضية أصلاً) هيعمل recomposition. لكن لما تستخدم `derivedStateOf`، الـ state الناتج (`listIsEmpty` في المثال ده) مش هيتغير ومش هيعمل trigger للـ recomposition بتاعة الـ Composables اللي بتقراه إلا لو *نتيجة* الـ calculation اللي جواه (`myList.isEmpty()` في المثال ده) هي اللي اتغيرت فعلاً (يعني الـ list بقت فاضية أو مبقتش فاضية). ده بيمنع recompositions ملهاش لازمة."
+    },
+    {
+        "question": "95. What is the 'App Standby Buckets' feature introduced in Android P (9.0) primarily designed to do?",
+        "options": [
+            "Group apps visually on the home screen.",
+            "Limit background network access, job execution, and alarms for apps based on usage frequency and recency, conserving battery.",
+            "Provide different storage quotas for apps based on their category.",
+            "Allow users to manually freeze background apps."
+        ],
+        "answer": "Limit background network access, job execution, and alarms for apps based on usage frequency and recency, conserving battery.",
+        "explanation": "الـ App Standby Buckets هي ميزة لإدارة الطاقة. الأندرويد سيستم بيصنف التطبيقات في 'buckets' (زي Active, Working Set, Frequent, Rare, Restricted) بناءً على آخر مرة المستخدم فتح التطبيق ومدى تكرار استخدامه. كل bucket ليه قيود مختلفة على قدرة التطبيق إنه يشغل jobs في الخلفية، أو يعمل alarms، أو يوصل للشبكة وهو في الخلفية. التطبيقات اللي في الـ 'Active' bucket (اللي المستخدم بيستخدمها حالياً أو استخدمها قريب جداً) مبيبقاش عليها قيود تقريباً، بينما التطبيقات اللي في الـ 'Rare' أو 'Restricted' buckets بيبقى عليها قيود صارمة جداً. الهدف الأساسي هو تقليل استهلاك البطارية من التطبيقات اللي المستخدم مش بيستخدمها كتير."
+    },
+    {
+        "question": "96. When using Kotlin's delegation (`by` keyword), what is the purpose of the `provideDelegate` operator function?",
+        "options": [
+            "To provide the initial value for the delegated property.",
+            "To intercept the creation of the delegate instance itself, allowing for custom logic or returning a different delegate.",
+            "To define the `getValue` operation for the delegate.",
+            "To define the `setValue` operation for the delegate."
+        ],
+        "answer": "To intercept the creation of the delegate instance itself, allowing for custom logic or returning a different delegate.",
+        "explanation": "عادة، لما بتكتب `val myProp by myDelegate()`, الكومبايلر بينادي `myDelegate()` عشان ياخد الـ instance بتاعة الـ delegate. لكن لو الـ type بتاع `myDelegate()` (أو extension function عليه) فيه operator function اسمها `provideDelegate`, الكومبايلر هينادي الفانكشن دي الأول. الفانكشن دي بتقدر تعمل أي logic أنت عايزه قبل ما الـ delegate instance الفعلي يتخلق، وممكن هي نفسها ترجع الـ delegate instance اللي هيستخدم (ممكن يكون مختلف عن اللي كان هيتعمل أصلاً). ده بيسمح بـ meta-programming أكتر وبيستخدم في بعض الـ libraries (زي Hilt أو غيرها) عشان تعمل setup للـ delegate قبل ما يستخدم."
+    },
+    {
+        "question": "97. What is ANGLE (Almost Native Graphics Layer Engine) sometimes used for in Android development?",
+        "options": [
+            "A physics engine for game development.",
+            "A UI layout preview tool.",
+            "A translation layer that allows running OpenGL ES API calls on top of other graphics backends like Vulkan or DirectX, often used for compatibility or performance testing.",
+            "An alternative build system to Gradle."
+        ],
+        "answer": "A translation layer that allows running OpenGL ES API calls on top of other graphics backends like Vulkan or DirectX, often used for compatibility or performance testing.",
+        "explanation": "ANGLE هو مشروع مفتوح المصدر (بدأته جوجل) بيعمل implementation للـ OpenGL ES API فوق APIs تانية زي Vulkan, DirectX (على ويندوز), أو Metal (على أبل). في سياق أندرويد، ممكن يستخدم كطريقة لتشغيل تطبيقات أو ألعاب معتمدة على OpenGL ES على أجهزة ممكن يكون الـ Vulkan driver بتاعها أفضل أو أكتر استقراراً. كمان بيستخدم ساعات كـ default WebGL implementation في الـ WebView. ممكن المطورين يستخدموه لتجارب الأداء أو عشان يضمنوا compatibility مع درايفرات مختلفة."
+    },
+    {
+        "question": "98. In Android's `ConstraintLayout`, what is the primary difference between using a `Guideline` and a `Barrier`?",
+        "options": [
+            "`Guideline` positions relative to parent, `Barrier` positions relative to other views.",
+            "`Guideline` is visible, `Barrier` is invisible.",
+            "A `Guideline` is a fixed vertical or horizontal line (defined by percentage or dp from edge) used as an anchor for constraining other views. A `Barrier` creates a virtual line based on the edges of multiple other views (e.g., ensuring View C starts after the rightmost edge of View A and View B).",
+            "`Barrier` enforces aspect ratio, `Guideline` does not."
+        ],
+        "answer": "A `Guideline` is a fixed vertical or horizontal line (defined by percentage or dp from edge) used as an anchor for constraining other views. A `Barrier` creates a virtual line based on the edges of multiple other views (e.g., ensuring View C starts after the rightmost edge of View A and View B).",
+        "explanation": "الـ `Guideline` هو خط وهمي (أفقي أو رأسي) بتقدر تحطه في مكان ثابت جوه الـ `ConstraintLayout` (يا إما بمسافة dp من الحافة أو بنسبة مئوية من العرض/الطول). بعدين بتقدر تعمل constrain للـ views التانية بالنسبة للخط ده. أما الـ `Barrier`، فهو برضه خط وهمي، لكن مكانه مش ثابت، مكانه بيتحدد بناءً على مجموعة من الـ views التانية. مثلاً، ممكن تعمل `Barrier` نوعه `END` بيعتمد على View A و View B، الـ Barrier ده هيمثل أقصى يمين لـ A و B مع بعض. بعدين ممكن تعمل constrain لـ View C إنه يبدأ بعد الـ Barrier ده، فكده تضمن إن C دايماً هيكون بعد أبعد واحد في A و B."
+    },
+    {
+        "question": "99. What is the 'Input Dispatch Lag' in Android, and how might analyzing `inputflinger` traces in Perfetto help identify its cause?",
+        "options": [
+            "Delay between network request and response.",
+            "Time taken for the disk I/O to complete.",
+            "The delay between a physical input event (e.g., touch) occurring and the application actually receiving and processing that event.",
+            "Lag caused by the garbage collector running."
+        ],
+        "answer": "The delay between a physical input event (e.g., touch) occurring and the application actually receiving and processing that event.",
+        "explanation": "الـ Input Dispatch Lag هو التأخير الزمني بين اللحظة اللي المستخدم بيلمس فيها الشاشة (أو بيضغط زرار) واللحظة اللي التطبيق بتاعك بيستقبل فيها الـ event ده ويقدر يبدأ يتعامل معاه. التأخير ده ممكن يحصل بسبب كذا حاجة في الـ pipeline بتاع الـ input، زي إن الـ UI thread بتاع تطبيقك يكون مشغول جداً (blocked) فمش قادر يستقبل الـ event الجديد بسرعة. الـ `inputflinger` هو system service مسئول عن قراية الـ input events وتوزيعها على الـ windows المناسبة. تحليل الـ traces بتاعته (مع الـ app threads) في Perfetto أو Systrace بيسمحلك تشوف الـ timeline بتاع الـ event من أول ما السيستم استقبله لحد ما وصل لتطبيقك، وتحدد فين بالظبط حصل التأخير الكبير (هل التأخير في السيستم نفسه ولا بسبب إن الـ app thread بتاعك كان busy)."
+    },
+    {
+        "question": "100. When might you use `Modifier.layoutId()` in Jetpack Compose, particularly within custom layouts or `ConstraintLayout`?",
+        "options": [
+            "To assign a unique ID for testing purposes using `onNodeWithTag`.",
+            "To associate a Composable with a specific ID that can be referenced by the measure policy of a custom `Layout` or by the constraints set in a `ConstraintLayout` Composable, allowing placement based on ID rather than order.",
+            "To control the Z-order (elevation) of Composables.",
+            "To apply conditional padding based on the layout ID."
+        ],
+        "answer": "To associate a Composable with a specific ID that can be referenced by the measure policy of a custom `Layout` or by the constraints set in a `ConstraintLayout` Composable, allowing placement based on ID rather than order.",
+        "explanation": "`Modifier.layoutId(id)` بيدى للـ Composable اللي متطبق عليه ID معين (ممكن يكون String أو أي object). الـ ID ده بيبقى ليه فايدة أساسية جوه الـ measure policy بتاعة `Layout` Composable (سواء custom layout أنت عامله أو `ConstraintLayout`). بدل ما تتعامل مع الـ children كـ list بالترتيب، بتقدر توصل لـ child معين عن طريق الـ ID بتاعه عشان تقيسه أو تحدد مكانه. في `ConstraintLayout` Compose، بتستخدم الـ IDs دي عشان تعمل createRefs() وتربط الـ constraints بين الـ Composables المختلفة بناءً على الـ ID بتاعها."
+    }
 ];
 
 
