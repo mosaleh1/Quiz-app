@@ -1,0 +1,288 @@
+/* Import a Google Font (Example: Poppins) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    /* Use the imported font */
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ece9e6 0%, #ffffff 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px; /* Add padding for smaller screens */
+    box-sizing: border-box; /* Include padding in element's total width/height */
+    color: #333; /* Default text color */
+}
+
+.quiz-container {
+    background-color: #ffffff;
+    padding: 35px 40px; /* Slightly more padding */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
+    width: 95%;
+    max-width: 700px; /* Slightly wider max-width */
+    text-align: center;
+    /* Add a subtle animation on load */
+    animation: fadeInScale 0.5s ease-out forwards;
+}
+
+/* --- Animations --- */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes feedbackAppear {
+     from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+h1 {
+    color: #2c3e50; /* Darker blue-grey */
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+#question-header {
+    margin-bottom: 25px;
+    text-align: left;
+    border-bottom: 1px solid #eee; /* Separator line */
+    padding-bottom: 15px;
+}
+
+#question {
+    color: #34495e; /* Slightly darker text */
+    font-size: 1.3em; /* Larger question font */
+    font-weight: 600; /* Bolder question */
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+#question-header p {
+    color: #7f8c8d; /* Softer grey */
+    font-size: 0.95em;
+}
+
+/* --- Enhanced Options Styling --- */
+#options-container {
+    margin-top: 20px; /* Add space above options */
+}
+
+#options-container div {
+    margin-bottom: 12px;
+    text-align: left;
+    /* Make the container ready for absolute positioning of radio */
+    position: relative; 
+}
+
+#options-container input[type="radio"] {
+    /* Hide the default radio button visually but keep it accessible */
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    cursor: pointer; /* Cursor indicates the whole area is clickable */
+    margin: 0; /* Remove default margin */
+}
+
+#options-container label {
+    display: block;
+    padding: 15px 20px 15px 45px; /* More padding, space left for custom radio */
+    background-color: #f8f9fa; /* Light background */
+    border: 1px solid #e0e0e0; /* Subtle border */
+    border-radius: 8px; /* Rounded corners for options */
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, transform 0.1s ease;
+    position: relative; /* Needed for pseudo-element */
+    font-weight: 400; /* Regular weight for options */
+    color: #555;
+}
+
+/* Custom radio button indicator using ::before */
+#options-container label::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border: 2px solid #bdc3c7; /* Grey border */
+    border-radius: 50%;
+    background-color: #fff;
+    transition: border-color 0.2s ease-in-out;
+}
+
+/* Custom radio button indicator - checked state using ::after */
+#options-container label::after {
+    content: '';
+    position: absolute;
+    left: 21px; /* Position inside the circle */
+    top: 50%;
+    transform: translateY(-50%) scale(0); /* Hidden by default */
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #fff; /* White dot */
+    transition: transform 0.2s ease-in-out;
+}
+
+
+/* Hover state for options */
+#options-container input[type="radio"]:not(:disabled) + label:hover {
+    background-color: #e9ecef; /* Slightly darker on hover */
+    border-color: #adb5bd;
+}
+#options-container input[type="radio"]:not(:disabled) + label:hover::before {
+    border-color: #adb5bd;
+}
+
+
+/* Checked state for options */
+#options-container input[type="radio"]:checked + label {
+    background-color: #e7f3ff; /* Light blue background */
+    border-color: #007bff; /* Blue border */
+    color: #0056b3; /* Darker blue text */
+    font-weight: 600; /* Make selected text bold */
+}
+
+#options-container input[type="radio"]:checked + label::before {
+    background-color: #007bff; /* Blue background for outer circle */
+    border-color: #007bff; /* Blue border */
+}
+#options-container input[type="radio"]:checked + label::after {
+     transform: translateY(-50%) scale(1); /* Show the inner dot */
+}
+
+
+/* Disabled state (after answering) */
+#options-container input[type="radio"]:disabled + label {
+    cursor: not-allowed;
+    opacity: 0.7; /* Fade out disabled options slightly */
+}
+#options-container input[type="radio"]:disabled + label:hover {
+     background-color: #f8f9fa; /* No hover effect when disabled */
+     border-color: #e0e0e0;
+}
+#options-container input[type="radio"]:disabled:checked + label {
+    background-color: #e7f3ff; /* Keep checked style even when disabled */
+    border-color: #007bff;
+    opacity: 1; /* Keep checked fully visible */
+}
+
+
+/* --- Button Styling --- */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 14px 30px; /* Larger padding */
+    border-radius: 8px; /* Match options */
+    cursor: pointer;
+    font-size: 1.05em; /* Slightly larger font */
+    font-weight: 600; /* Bolder button text */
+    margin-top: 25px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3); /* Button shadow */
+}
+
+button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
+    box-shadow: 0 6px 12px rgba(0, 86, 179, 0.4);
+}
+
+button:active {
+     transform: translateY(0); /* Back to original position on click */
+     box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+/* --- Feedback Styling --- */
+#feedback {
+    margin-top: 25px;
+    padding: 18px; /* More padding */
+    border-radius: 8px; /* Match options/buttons */
+    font-size: 1.05em;
+    font-weight: 600; /* Bold feedback text */
+    /* Animation for appearing */
+    animation: feedbackAppear 0.4s ease-out forwards;
+}
+
+#feedback.correct {
+    background-color: #d1e7dd; /* Updated green */
+    color: #0f5132;
+    border: 1px solid #badbcc;
+}
+
+#feedback.incorrect {
+    background-color: #f8d7da;
+    color: #842029;
+    border: 1px solid #f5c2c7;
+}
+
+#feedback p {
+    margin: 5px 0;
+}
+
+#explanation {
+    font-style: normal; /* Remove italics if preferred */
+    font-weight: 400; /* Regular weight */
+    color: #495057; /* Dark grey explanation text */
+    margin-top: 12px;
+    line-height: 1.6; /* Better readability for Arabic */
+    text-align: right;
+    font-size: 1em; /* Slightly larger explanation */
+}
+
+/* --- Results Styling --- */
+#results-container {
+    margin-top: 30px;
+    animation: fadeInScale 0.5s ease-out forwards; /* Reuse animation */
+}
+
+#results-container h2 {
+    color: #198754; /* Bootstrap success green */
+    font-size: 1.8em;
+    margin-bottom: 15px;
+}
+
+#results-container p {
+    font-size: 1.2em;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+#score, #total-score {
+    font-weight: 600;
+    color: #0d6efd; /* Bootstrap primary blue */
+}
+
+#restart-btn {
+     background-color: #6c757d; /* Grey restart button */
+     box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+}
+#restart-btn:hover {
+     background-color: #5a6268;
+     box-shadow: 0 6px 12px rgba(90, 98, 104, 0.4);
+}
+
+
+.hidden {
+    display: none;
+}
